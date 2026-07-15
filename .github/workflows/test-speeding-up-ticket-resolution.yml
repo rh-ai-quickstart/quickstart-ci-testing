@@ -20,7 +20,7 @@ jobs:
         timeout-minutes: 15
         with:
           repo_url: https://github.com/rh-ai-quickstart/speeding-up-ticket-resolution
-          ref: dev
+          ref: main
           submodules: 'true'
           deploy_command: "make install"
         env:
