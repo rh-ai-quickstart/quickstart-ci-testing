@@ -1,0 +1,74 @@
+name: Build and push images (manual)
+
+# Required repository secrets:
+# - QUAY_USERNAME: Quay robot-account username with push access to rh-ai-quickstart.
+# - QUAY_PASSWORD: Token for the Quay robot account.
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: Target branch for building
+        required: false
+        default: main
+        type: string
+      version:
+        description: Valid OCI tag applied to every image (for example, v0.1.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Cancel duplicate builds of the same source ref and image version.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.repository }}-${{ inputs.target_branch }}-${{ inputs.version }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: quay.io/rh-ai-quickstart
+
+# The adopting repository must provide `build-all-images` and `push-all-images`
+# Make targets that use the VERSION and REGISTRY environment variables.
+
+jobs:
+  build-and-push:
+    name: Build and push images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate image version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [[ ! "$VERSION" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo "Version must be a valid OCI tag: 1-128 characters, beginning with alphanumeric or underscore, followed by alphanumeric characters, underscores, periods, or hyphens." >&2
+            exit 1
+          fi
+
+      - name: Checkout source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_branch }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Quay.io
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+
+      - name: Build all Images
+        run: |
+          echo "Building images with version: ${{ inputs.version }}"
+          echo "Using registry: ${{ env.REGISTRY }}"
+          VERSION="${{ inputs.version }}" make build-all-images
+
+      - name: Push all Images
+        run: |
+          echo "Pushing images with version: ${{ inputs.version }}"
+          echo "Using registry: ${{ env.REGISTRY }}"
+          VERSION="${{ inputs.version }}" make push-all-images
