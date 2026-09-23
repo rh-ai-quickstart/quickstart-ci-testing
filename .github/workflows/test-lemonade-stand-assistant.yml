@@ -25,6 +25,7 @@ jobs:
           deploy_command: >-
             LLM_HOST=$(echo "$LLM_URL" | sed 's|https\?://||;s|/.*||')
             && helm install lemonade-stand-assistant ./chart --namespace "$NAMESPACE"
+            --set namespace.name="$NAMESPACE"
             --set model.name="$LLM_ID"
             --set model.endpoint="$LLM_HOST"
             --set model.port=443

@@ -36,6 +36,7 @@ jobs:
             sed -i 's/| default "8080"/| default "80"/' ./chart/templates/fms-orchestr8-config-nlp.yaml
           deploy_command: >-
             helm install lemonade-stand-assistant ./chart --namespace "$NAMESPACE"
+            --set namespace.name="$NAMESPACE"
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
