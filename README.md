@@ -25,10 +25,10 @@ These workflows are scheduled to run on a regular basis and report on the health
 
 | Quickstart | Status |
 |---|---|
-| IT Self-Service Agent | [![Test - IT Self-Service Agent](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-it-self-service-agent.yml/badge.svg)](https://github.com/fix: fixup badge references/quickstart-ci-testing/actions/workflows/test-it-self-service-agent.yml) |
-| RAG | [![Test - RAG](https://github.com/fix: fixup badge references/quickstart-ci-testing/actions/workflows/test-rag.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-rag.yml) |
+| IT Self-Service Agent | [![Test - IT Self-Service Agent](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-it-self-service-agent.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-it-self-service-agent.yml) |
+| RAG | [![Test - RAG](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-rag.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-rag.yml) |
 | Lemonade Stand Assistant (Default Model) | [![Test - Lemonade Stand Assistant (Default Model)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-lemonade-stand-assistant-default.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-lemonade-stand-assistant-default.yml) |
-| Speeding Up Ticket Resolution | [![Test - Speeding Up Ticket Resolution](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml/badge.svg)](https://github.com/fix: fixup badge references/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml) |
+| Speeding Up Ticket Resolution | [![Test - Speeding Up Ticket Resolution](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml) |
 
 ## Common actions
 
