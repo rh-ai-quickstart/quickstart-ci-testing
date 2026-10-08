@@ -1,0 +1,42 @@
+name: Test - Helpdesk Email Triage
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 21 * * 6'  # Saturday 5pm ET (EDT UTC-4)
+
+concurrency:
+  group: quickstart-ci-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: helpdesk-email-triage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install kustomize
+        run: |
+          curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.2/kustomize_v5.4.2_linux_amd64.tar.gz \
+            | tar xzf - -C /usr/local/bin kustomize
+
+      - uses: ./.github/actions/setup-and-deploy
+        timeout-minutes: 25
+        with:
+          repo_url: https://github.com/rh-ai-quickstart/helpdesk-email-triage
+          deploy_command: "make ci-install"
+        env:
+          PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
+          PROD_SERVER: ${{ secrets.PROD_SERVER }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+      - uses: ./.github/actions/run-quickstart-tests
+        timeout-minutes: 10
+        with:
+          test_command: "make ci-test"
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "make ci-uninstall"

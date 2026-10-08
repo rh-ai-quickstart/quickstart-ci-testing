@@ -29,6 +29,7 @@ These workflows are scheduled to run on a regular basis and report on the health
 | RAG | [![Test - RAG](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-rag.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-rag.yml) |
 | Lemonade Stand Assistant (Default Model) | [![Test - Lemonade Stand Assistant (Default Model)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-lemonade-stand-assistant-default.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-lemonade-stand-assistant-default.yml) |
 | Speeding Up Ticket Resolution | [![Test - Speeding Up Ticket Resolution](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml) |
+| Helpdesk Email Triage | [![Test - Helpdesk Email Triage](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-helpdesk-email-triage.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-helpdesk-email-triage.yml) |
 
 ## Common actions
 
