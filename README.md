@@ -39,6 +39,7 @@ This repo provides 3 top level actions to be used with test workflows
 .github/
 ├── actions/
     ├── setup-and-deploy/       # Prepare runner, clone repo, setup target, print versions, deploy
+    ├── setup-openshift-registry/ # Start the temporary OpenShift registry when building images
     ├── run-quickstart-tests/   # Run optional pre-test setup, run tests, upload artifacts
     └── cleanup/                # Tear down deployment (always runs)
 ```
@@ -50,10 +51,12 @@ These environment variables are used by the actions when appropriate:
 | Variable | Used by | Description |
 |---|---|---|
 | `NAMESPACE` | `setup-and-deploy`, `cleanup` | Kubernetes namespace to deploy into and clean up |
-| `REGISTRY` | `setup-and-deploy` | The registry from which to pull images as part of quickstart |
+| `REGISTRY` | `setup-and-deploy` | Registry used by image build, push, and deploy commands when `build_images` is enabled |
 
-When using the option to build images in KinD, **REGISTRY** is overridden with the address of a local
-KinD registry to which the images are built/pushed and then pulled during the deployment.
+When `build_images` is enabled, **REGISTRY** is set for the image build, push, and deploy commands.
+KinD uses a local registry on `localhost:5001`. OpenShift starts an ephemeral registry in the target
+namespace, pushes to it through `oc port-forward`, and gives workloads its in-cluster service address
+for image pulls.
 
 ### setup-and-deploy
 
@@ -71,9 +74,9 @@ Prepares the runner, clones the quickstart repo, logs into OpenShift or creates 
 | `use_kind` | no | `false` | Deploy to a local KinD cluster instead of OpenShift |
 | `kind_pre_deploy_command` | no | — | Pre-deploy commands run only on KinD (falls back to `setup_commands` if unset) |
 | `kind_extra_deploy_args` | no | — | Extra arguments appended to `deploy_command` only on KinD |
-| `build_images` | no | `false` | Build and push images to the local KinD registry before deploying (requires `use_kind: true`) |
+| `build_images` | no | `false` | Build and push images to a temporary registry before deploying (KinD or OpenShift) |
 | `build_images_command` | no | `make build-all-images` | Command to build images |
-| `push_images_command` | no | `make push-all-images` | Command to push images to the local KinD registry |
+| `push_images_command` | no | `make push-all-images` | Command to push images to the selected registry |
 
 When deploying to OpenShift, the `PROD_TOKEN`, `PROD_SERVER` environment variables must be passed via `env:` on the action step.
 `PROD_SERVER` is the OpenShift cluster to deploy to, and `PROD_TOKEN` is the token for a service account that has access to the

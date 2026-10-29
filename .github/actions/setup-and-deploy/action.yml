@@ -41,7 +41,7 @@ inputs:
     required: false
     default: ''
   build_images:
-    description: Build and push images to local KinD registry (only valid with use_kind)
+    description: Build and push images to the local registry (KinD or OpenShift)
     required: false
     default: 'false'
   build_images_command:
@@ -49,7 +49,7 @@ inputs:
     required: false
     default: 'make build-all-images'
   push_images_command:
-    description: Command to push images to local registry
+    description: Command to push images to the registry
     required: false
     default: 'make push-all-images'
 
@@ -62,13 +62,6 @@ runs:
     - name: Export namespace
       shell: bash
       run: echo "NAMESPACE=${{ inputs.namespace }}" >> "$GITHUB_ENV"
-
-    - name: Validate build_images requires use_kind
-      if: inputs.build_images == 'true' && inputs.use_kind != 'true'
-      shell: bash
-      run: |
-        echo "::error::build_images can only be used when use_kind is 'true'"
-        exit 1
 
     - name: Validate OpenShift secrets
       if: inputs.use_kind != 'true'
@@ -96,6 +89,34 @@ runs:
       with:
         namespace: ${{ inputs.namespace }}
         setup_commands: ${{ inputs.setup_commands }}
+
+    - name: Setup OpenShift image registry
+      id: openshift-registry
+      if: inputs.use_kind != 'true' && inputs.build_images == 'true'
+      uses: ./.github/actions/setup-openshift-registry
+      with:
+        namespace: ${{ inputs.namespace }}
+
+    - name: Build images for OpenShift registry
+      if: inputs.use_kind != 'true' && inputs.build_images == 'true'
+      shell: bash
+      working-directory: ./quickstart
+      env:
+        BUILD_COMMAND: ${{ inputs.build_images_command }}
+        REGISTRY: localhost:5001
+        NAMESPACE: ${{ inputs.namespace }}
+      run: eval "$BUILD_COMMAND"
+
+    - name: Push images to OpenShift registry
+      if: inputs.use_kind != 'true' && inputs.build_images == 'true'
+      shell: bash
+      working-directory: ./quickstart
+      env:
+        PUSH_COMMAND: ${{ inputs.push_images_command }}
+        REGISTRY: localhost:5001
+        PUSH_EXTRA_AGRS: "--tls-verify=false"
+        NAMESPACE: ${{ inputs.namespace }}
+      run: eval "$PUSH_COMMAND"
 
     - name: Print environment versions
       if: inputs.use_kind != 'true'
@@ -134,7 +155,7 @@ runs:
       run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
 
     - name: Deploy application (local images)
-      if: inputs.build_images == 'true'
+      if: inputs.build_images == 'true' && inputs.use_kind == 'true'
       shell: bash
       working-directory: ./quickstart
       env:
@@ -142,6 +163,17 @@ runs:
         EXTRA_DEPLOY_ARGS: ${{ inputs.extra_deploy_args }} ${{ inputs.use_kind == 'true' && inputs.kind_extra_deploy_args || '' }}
         NAMESPACE: ${{ inputs.namespace }}
         REGISTRY: localhost:5001
+      run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
+
+    - name: Deploy application (OpenShift images)
+      if: inputs.build_images == 'true' && inputs.use_kind != 'true'
+      shell: bash
+      working-directory: ./quickstart
+      env:
+        DEPLOY_COMMAND: ${{ inputs.deploy_command }}
+        EXTRA_DEPLOY_ARGS: ${{ inputs.extra_deploy_args }}
+        NAMESPACE: ${{ inputs.namespace }}
+        REGISTRY: ${{ steps.openshift-registry.outputs.registry }}
       run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
 
     - name: Verify deployment

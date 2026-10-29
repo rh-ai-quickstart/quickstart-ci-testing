@@ -1,0 +1,130 @@
+name: Setup OpenShift image registry
+description: Start an ephemeral registry in the target project and port-forward it to the runner
+
+inputs:
+  namespace:
+    description: OpenShift project to host the registry
+    required: true
+
+outputs:
+  registry:
+    description: In-cluster registry address for workload image references
+    value: ${{ steps.registry.outputs.registry }}
+
+runs:
+  using: composite
+  steps:
+    - name: Start registry and runner port-forward
+      id: registry
+      shell: bash
+      env:
+        NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        set -euo pipefail
+
+        registry_name=ci-image-registry
+        registry_host="${registry_name}.${NAMESPACE}.svc:5000"
+
+        # The service CA gives in-cluster image pulls a trusted TLS endpoint.
+        oc -n "$NAMESPACE" apply -f - <<'EOF'
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: ci-image-registry
+          annotations:
+            service.beta.openshift.io/serving-cert-secret-name: ci-image-registry-tls
+        spec:
+          selector:
+            app: ci-image-registry
+          ports:
+            - name: registry
+              port: 5000
+              protocol: TCP
+              targetPort: registry
+        EOF
+
+        # Wait for the Service CA controller to issue the serving certificate.
+        for attempt in {1..60}; do
+          cert="$(oc -n "$NAMESPACE" get secret ci-image-registry-tls \
+            -o jsonpath='{.data.tls\.crt}' 2>/dev/null || true)"
+          if [ -n "$cert" ]; then
+            break
+          fi
+          sleep 2
+        done
+        if [ -z "${cert:-}" ]; then
+          echo "::error::Timed out waiting for the OpenShift service certificate."
+          exit 1
+        fi
+
+        oc -n "$NAMESPACE" apply -f - <<'EOF'
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ci-image-registry
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: ci-image-registry
+          template:
+            metadata:
+              labels:
+                app: ci-image-registry
+            spec:
+              containers:
+                - name: registry
+                  image: registry:2
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                    - name: registry
+                      containerPort: 5000
+                      protocol: TCP
+                  env:
+                    - name: OTEL_TRACES_EXPORTER
+                      value: none
+                    - name: REGISTRY_HTTP_TLS_CERTIFICATE
+                      value: /certs/tls.crt
+                    - name: REGISTRY_HTTP_TLS_KEY
+                      value: /certs/tls.key
+                  volumeMounts:
+                    - name: registry-data
+                      mountPath: /var/lib/registry
+                    - name: registry-tls
+                      mountPath: /certs
+                      readOnly: true
+              volumes:
+                - name: registry-data
+                  emptyDir: {}
+                - name: registry-tls
+                  secret:
+                    secretName: ci-image-registry-tls
+        EOF
+
+        oc -n "$NAMESPACE" rollout status deployment/ci-image-registry --timeout=180s
+
+        # Pushes use localhost through this tunnel. Workloads pull from the
+        # in-cluster service address, which resolves to the same registry.
+        port_forward_log="$RUNNER_TEMP/ci-image-registry-port-forward.log"
+        port_forward_pid="$RUNNER_TEMP/ci-image-registry-port-forward.pid"
+        nohup oc -n "$NAMESPACE" port-forward --address 127.0.0.1 \
+          service/ci-image-registry 5001:5000 >"$port_forward_log" 2>&1 </dev/null &
+        echo "$!" > "$port_forward_pid"
+
+        ready=false
+        for attempt in {1..30}; do
+          status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --insecure https://localhost:5001/v2/ || true)"
+          if [ "$status" = "200" ]; then
+            ready=true
+            break
+          fi
+          sleep 2
+        done
+        if [ "$ready" != true ]; then
+          cat "$port_forward_log"
+          echo "::error::The OpenShift image registry did not become reachable through port-forward."
+          exit 1
+        fi
+
+        echo "registry=$registry_host" >> "$GITHUB_OUTPUT"
