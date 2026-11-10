@@ -2,8 +2,6 @@ name: Test - Lemonade Stand Assistant (Default Model)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 1 * * 0'  # Saturday 9pm ET (EDT UTC-4, 01:00 UTC Sunday)
 
 concurrency:
   group: quickstart-ci-tests
