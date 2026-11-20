@@ -30,6 +30,7 @@ These workflows are scheduled to run on a regular basis and report on the health
 | Speeding Up Ticket Resolution | [![Test - Speeding Up Ticket Resolution](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml) |
 | AI Virtual Agent | [![Test - AI Virtual Agent](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-ai-virtual-agent.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-ai-virtual-agent.yml) |
 | Multi-Agent Loan Origination | [![Test - Multi-Agent Loan Origination](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-multi-agent-loan-origination.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-multi-agent-loan-origination.yml) |
+| AI Supply Chain Agent | [![Test - AI Supply Chain Agent](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-ai-supply-chain-agent.yml/badge.svg)](https://github.com/rh-ai-quickstart/quickstart-ci-testing/actions/workflows/test-ai-supply-chain-agent.yml) |
 
 
 ## Common actions
